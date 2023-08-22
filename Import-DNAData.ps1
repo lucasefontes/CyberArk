@@ -450,7 +450,7 @@ Domain Accounts Summary:
 
             $ExpiredAccounts = Join-Path "$ReportPath" "ExpiredAccounts.txt"
 
-            $NumberOfExpiredAccountsVar = $WindowsSheetData |
+            $NumberOfExpiredAccountsVar = $WindowsSheetData | Sort-Object -Property $AccountName -Unique |
             Where-Object {$_.$AccountState -like "Expired*" -and $_.$AccountName -notlike "*Group*"}
 
             $NumberOfExpiredAccounts = $NumberOfExpiredAccountsVar.Count
@@ -487,6 +487,29 @@ Domain Accounts Summary:
     }
 
     Get-LockedDomainAccount -ReportPath $ReportPath
+
+    Function Get-NADomainAccount {
+        param(
+            [Parameter(Mandatory = $true)]
+            [string]$ReportPath
+            )
+
+            $ReportNADomainAccounts = Join-Path "$ReportPath" "NA_DomainAccounts.txt"
+
+            $NumberOfNADomainAccountsVar = $WindowsSheetData | Sort-Object -Property $AccountName -Unique |
+            Where-Object {$_.$AccountState -like "N/A*" -and $_.$AccountName -notlike "*Group*" -and $_.$AccountType -like "Domain*"}
+            
+            $NumberOfNADomainAccounts = $NumberOfNADomainAccountsVar.Count
+            $PercentageNA = [math]::round(($NumberOfNADomainAccounts / $NumberOfDomainAccounts) * 100,2)
+            Write-Host ("N/A Status: $NumberOfNADomainAccounts | $PercentageNA%")
+            
+            $NumberOfNADomainAccountsVar | Sort-Object -Property $PasswordAge -Descending | Format-Table -Property `
+            $HashTableAccountName,$HashTableAccountState,$HashTablePasswordAge,$HashTableAccountType |
+            Tee-Object -FilePath $ReportNADomainAccounts | Out-Null
+
+    }
+
+    Get-NADomainAccount -ReportPath $ReportPath
 
     Function Get-PrivilegedDomainAccount{
         param(
@@ -532,7 +555,7 @@ Domain Accounts Summary:
     }
 
     Get-DomainServiceAccount -ReportPath $ReportPath
-    
+
     Function Get-DomainAdmin {
             param(
                 [Parameter(Mandatory = $true)]
