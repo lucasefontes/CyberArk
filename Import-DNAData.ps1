@@ -59,6 +59,9 @@ $HashTableHardCodedCredential = @{Name="$HardCodedCredential";Expression={$_.$Ha
         throw "Path $ReportPath does not exist"
     }
 
+$ReportPathLocal = New-Item -Path (Join-Path $ReportPath "ReportsForLocalAccounts") -ItemType Directory
+$ReportPathDomain = New-Item -Path (Join-Path $ReportPath "ReportsForDomainAccounts") -ItemType Directory
+
     Function Get-DNAData {
         param(
         [Parameter(Mandatory = $true)]
@@ -186,7 +189,7 @@ Local Accounts Summary:
         [string]$ReportPath
         )
 
-            $script:UniqueLocalAccounts = Join-Path "$ReportPath" "UniqueLocalAccounts.txt"
+            $script:UniqueLocalAccounts = Join-Path "$ReportPathLocal" "UniqueLocalAccounts.txt"
 
             $script:NumberOfLocalAccountsVar = $WindowsSheetData |
                 Where-Object {$_.$MachineName -notlike "*Group*" -and $_.$AccountType -like "Local*"}
@@ -208,7 +211,7 @@ Local Accounts Summary:
             [string]$ReportPath
             )
 
-            $DisabledLocalAccounts = Join-Path "$ReportPath" "DisabledLocalAccounts.txt"
+            $DisabledLocalAccounts = Join-Path "$ReportPathLocal" "DisabledLocalAccounts.txt"
 
             $NumberOfDisabledAccountsVar = $WindowsSheetData |
             Where-Object {$_.$AccountState -like "Disabled*" -and $_.$AccountName -notlike "*Group*" `
@@ -232,7 +235,7 @@ Local Accounts Summary:
             [string]$ReportPath
             )
 
-            $CompliantLocalAccountsReport = Join-Path "$ReportPath" "CompliantLocalAccounts.txt"
+            $CompliantLocalAccountsReport = Join-Path "$ReportPathLocal" "CompliantLocalAccounts.txt"
 
             $NumberOfCompliantLocalAccountsVar = $WindowsSheetData |
             Where-Object {$_.$ComplianceStatus -like "Compliant*" -and $_.$AccountName -notlike "*Group*" `
@@ -257,7 +260,7 @@ Local Accounts Summary:
             [string]$ReportPath
             )
 
-            $NonCompliantLocalAccountsReport = Join-Path "$ReportPath" "NonCompliantLocalAccounts.txt"
+            $NonCompliantLocalAccountsReport = Join-Path "$ReportPathLocal" "NonCompliantLocalAccounts.txt"
 
             $NumberOfNonCompliantLocalAccountsVar = $WindowsSheetData |
             Where-Object {$_.$ComplianceStatus -like "Non-compliant*" -and $_.$AccountName -notlike "*Group*" `
@@ -281,7 +284,7 @@ Local Accounts Summary:
             [string]$ReportPath
             )
 
-            $ReportLockedLocalAccounts = Join-Path "$ReportPath" "LockedLocalAccounts.txt"
+            $ReportLockedLocalAccounts = Join-Path "$ReportPathLocal" "LockedLocalAccounts.txt"
 
             $NumberOfLockedLocalAccountsVar = $WindowsSheetData |
             Where-Object {$_.$AccountState -like "Locked*" -and $_.$AccountName -notlike "*Group*" -and $_.$AccountType -notlike "Domain*"}
@@ -304,7 +307,7 @@ Local Accounts Summary:
             [string]$ReportPath
             )
 
-            $ReportPrivilegeLocalAccounts = Join-Path "$ReportPath" "PrivilegeLocalAccounts.txt"
+            $ReportPrivilegeLocalAccounts = Join-Path "$ReportPathLocal" "PrivilegeLocalAccounts.txt"
 
             $PrivilegeLocalAccounts = $WindowsSheetData |
             Where-Object {$_.$AccountCategory -like "Privilege*" -and $_.$AccountName -notlike "*Group*" `
@@ -327,7 +330,7 @@ Local Accounts Summary:
             [string]$ReportPath
             )
 
-            $ReportLocalServiceAccounts = Join-Path "$ReportPath" "LocalServiceAccounts.txt"
+            $ReportLocalServiceAccounts = Join-Path "$ReportPathLocal" "LocalServiceAccounts.txt"
 
             $LocalServiceAccountsVar = $WindowsSheetData |
             Where-Object {$_.$AccountState -like "Enabled*" -and $_.$AccountCategory -like "Service Account*" `
@@ -354,10 +357,10 @@ Domain Accounts Summary:
         [string]$ReportPath
         )
 
-            $script:UniqueDomainAccounts = Join-Path "$ReportPath" "UniqueDomainAccounts.txt"
+            $script:UniqueDomainAccounts = Join-Path "$ReportPathDomain" "UniqueDomainAccounts.txt"
 
             $script:NumberOfDomainAccountsVar = $WindowsSheetData | Where-Object {$_.$AccountName -notlike "*Group*" `
-            -and $_.$AccountType -like "Domain*"} |
+            -and $_.$AccountType -like "Domain*"} | 
             Sort-Object -Property $AccountName -Unique
 
             $script:NumberOfDomainAccounts = $NumberOfDomainAccountsVar.Count
@@ -376,7 +379,7 @@ Domain Accounts Summary:
             [string]$ReportPath
             )
 
-            $DisabledDomainAccounts = Join-Path "$ReportPath" "DisabledDomainAccounts.txt"
+            $DisabledDomainAccounts = Join-Path "$ReportPathDomain" "DisabledDomainAccounts.txt"
 
             $NumberOfDisabledAccountsVar = $WindowsSheetData | Sort-Object -Property $AccountName -Unique |
             Where-Object {$_.$AccountState -like "Disabled*" -and $_.$AccountName -notlike "*Group*" `
@@ -399,7 +402,7 @@ Domain Accounts Summary:
             [string]$ReportPath
             )
 
-            $CompliantDomainAccountsReport = Join-Path "$ReportPath" "CompliantDomainAccounts.txt"
+            $CompliantDomainAccountsReport = Join-Path "$ReportPathDomain" "CompliantDomainAccounts.txt"
 
             $NumberOfCompliantDomainAccountsVar = $WindowsSheetData | Sort-Object -Property $AccountName -Unique |
             Where-Object {$_.$ComplianceStatus -like "Compliant*" -and $_.$AccountName -notlike "*Group*" `
@@ -423,7 +426,7 @@ Domain Accounts Summary:
             [string]$ReportPath
             )
 
-            $NonCompliantDomainAccountsReport = Join-Path "$ReportPath" "NonCompliantDomainAccounts.txt"
+            $NonCompliantDomainAccountsReport = Join-Path "$ReportPathDomain" "NonCompliantDomainAccounts.txt"
 
             $NumberOfNonCompliantDomainAccountsVar = $WindowsSheetData | Sort-Object -Property $AccountName -Unique |
             Where-Object {$_.$ComplianceStatus -like "Non-compliant*" -and $_.$AccountName -notlike "*Group*" `
@@ -448,7 +451,7 @@ Domain Accounts Summary:
             [string]$ReportPath
             )
 
-            $ExpiredAccounts = Join-Path "$ReportPath" "ExpiredAccounts.txt"
+            $ExpiredAccounts = Join-Path "$ReportPathDomain" "ExpiredAccounts.txt"
 
             $NumberOfExpiredAccountsVar = $WindowsSheetData | Sort-Object -Property $AccountName -Unique |
             Where-Object {$_.$AccountState -like "Expired*" -and $_.$AccountName -notlike "*Group*"}
@@ -471,7 +474,7 @@ Domain Accounts Summary:
             [string]$ReportPath
             )
 
-            $ReportLockedDomainAccounts = Join-Path "$ReportPath" "LockedDomainAccounts.txt"
+            $ReportLockedDomainAccounts = Join-Path "$ReportPathDomain" "LockedDomainAccounts.txt"
 
             $NumberOfLockedDomainAccountsVar = $WindowsSheetData | Sort-Object -Property $AccountName -Unique |
             Where-Object {$_.$AccountState -like "Locked*" -and $_.$AccountName -notlike "*Group*" -and $_.$AccountType -like "Domain*"}
@@ -494,7 +497,7 @@ Domain Accounts Summary:
             [string]$ReportPath
             )
 
-            $ReportNADomainAccounts = Join-Path "$ReportPath" "NA_DomainAccounts.txt"
+            $ReportNADomainAccounts = Join-Path "$ReportPathDomain" "NA_DomainAccounts.txt"
 
             $NumberOfNADomainAccountsVar = $WindowsSheetData | Sort-Object -Property $AccountName -Unique |
             Where-Object {$_.$AccountState -like "N/A*" -and $_.$AccountName -notlike "*Group*" -and $_.$AccountType -like "Domain*"}
@@ -517,7 +520,7 @@ Domain Accounts Summary:
             [string]$ReportPath
             )
 
-            $ReportPrivilegeDomainAccounts = Join-Path "$ReportPath" "PrivilegeDomainAccounts.txt"
+            $ReportPrivilegeDomainAccounts = Join-Path "$ReportPathDomain" "PrivilegeDomainAccounts.txt"
 
             $PrivilegeDomainAccounts = $WindowsSheetData | Sort-Object -Property $AccountName -Unique |
             Where-Object {$_.$AccountCategory -like "Privilege*" -and $_.$AccountName -notlike "*Group*" `
@@ -540,7 +543,7 @@ Domain Accounts Summary:
             [string]$ReportPath
             )
 
-            $ReportDomainServiceAccounts = Join-Path "$ReportPath" "DomainServiceAccounts.txt"
+            $ReportDomainServiceAccounts = Join-Path "$ReportPathDomain" "DomainServiceAccounts.txt"
 
             $DomainServiceAccountsVar = $WindowsSheetData | Sort-Object -Property $AccountName -Unique |
             Where-Object {$_.$AccountState -like "Enabled*" -and $_.$AccountCategory -like "Service Account*" `
@@ -562,7 +565,7 @@ Domain Accounts Summary:
                 [string]$ReportPath
                 )
 
-            $ReportLocationDomainAdminAccounts = Join-Path "$ReportPath" "DomainAdminAccounts.txt"
+            $ReportLocationDomainAdminAccounts = Join-Path "$ReportPathDomain" "DomainAdminAccounts.txt"
 
 Write-Host ("
 Domain Admins:
@@ -585,7 +588,7 @@ Domain Admins:
                 [string]$ReportPath
                 )
 
-            $ReportWideSpreadAccess = Join-Path "$ReportPath" "WideSpreadAccessServers.txt"
+            $ReportWideSpreadAccess = Join-Path "$ReportPathDomain" "WideSpreadAccessServers.txt"
 
             $WideSpreadAccess =  $WindowsSheetData | Where-Object {$_.$AccountGroup -like "Administrators*" `
             -and $_.$AccountType -notlike "Local*" `
@@ -621,7 +624,7 @@ and the count of machines they have administrative access to:
             [string]$ReportPath
             )
 
-            $WideSpreadLimitedAccess = Join-Path "$ReportPath" "WideSpreadLimitedAccessServers.txt"
+            $WideSpreadLimitedAccess = Join-Path "$ReportPathDomain" "WideSpreadLimitedAccessServers.txt"
 
 Write-Host ("
 Domain-Based Windows Server Admins (with Limited Access)
@@ -659,7 +662,7 @@ percentage of access to machines. Less than 10% is generally considered Limited 
                 [string]$ReportPath
                 )
 
-            $DomainBasedWorkstationAdmins = Join-Path "$ReportPath" "WideSpreadAccessWorksations.txt"
+            $DomainBasedWorkstationAdmins = Join-Path "$ReportPathDomain" "WideSpreadAccessWorksations.txt"
 
             Write-Host ("This will give us all the domain-based accounts with admin permissions on workstations:
 ---------------------------------------------------------------------------------------") -ForegroundColor Green
@@ -692,7 +695,7 @@ percentage of access to machines. Less than 10% is generally considered Limited 
             [string]$ReportPath
             )
 
-            $ReportWindowsBuiltInLocalAdmins = Join-Path "$ReportPath" "WindowsBuiltInLocalAdmins.txt"
+            $ReportWindowsBuiltInLocalAdmins = Join-Path "$ReportPathLocal" "WindowsBuiltInLocalAdmins.txt"
 
             Write-Host ("Windows Built-in Local Administrators(SID-500)(Enabled-Only):
 -------------------------------------------------------------") -ForegroundColor Green
@@ -725,7 +728,7 @@ percentage of access to machines. Less than 10% is generally considered Limited 
                 [string]$ReportPath
             )
 
-            $ReportWindowsLocalAdmins = Join-Path "$ReportPath" "WindowsLocalAdmins.txt"
+            $ReportWindowsLocalAdmins = Join-Path "$ReportPathLocal" "WindowsLocalAdmins.txt"
 
             Write-Host ("Windows Local Administrators(Enabled-Only), similar to our built-in Local Administrators but we are excluding the builtin ones,
 this will give us all the other local admin accounts that have been created outside of that SID-500 account:
@@ -758,7 +761,7 @@ this will give us all the other local admin accounts that have been created outs
                 [string]$ReportPath
             )
 
-            $ReportHighAgeLocal = Join-Path "$ReportPath" "HighAgeLocalAccounts.txt"
+            $ReportHighAgeLocal = Join-Path "$ReportPathLocal" "HighAgeLocalAccounts.txt"
 
             $HighAgeLocal = $WindowsSheetData | Sort-Object -Property $PasswordAge -Descending |
             Where-Object {$_.$AccountType -like "Local*" -and $_.$AccountState -like "Enabled*"} | Select-Object -First 15
@@ -787,7 +790,7 @@ this will give us all the other local admin accounts that have been created outs
                 [string]$ReportPath
             )
 
-            $ReportHighAgeDomain = Join-Path "$ReportPath" "HighAgeDomainAccounts.txt"
+            $ReportHighAgeDomain = Join-Path "$ReportPathDomain" "HighAgeDomainAccounts.txt"
 
             $HighAgeDomain = $WindowsSheetData | Sort-Object -Property $PasswordAge -Descending -Unique |
             Where-Object {$_.$AccountType -notlike "Local*" -and $_.$AccountState -like "Enabled*"} | Select-Object -First 15
