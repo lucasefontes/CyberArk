@@ -59,8 +59,25 @@ $HashTableHardCodedCredential = @{Name="$HardCodedCredential";Expression={$_.$Ha
         throw "Path $ReportPath does not exist"
     }
 
-$ReportPathLocal = New-Item -Path (Join-Path $ReportPath "ReportsForLocalAccounts") -ItemType Directory
-$ReportPathDomain = New-Item -Path (Join-Path $ReportPath "ReportsForDomainAccounts") -ItemType Directory
+    if (Test-Path $SpreadSheetPath){
+
+    }
+
+$TestReportPathLocal = Test-Path (Join-Path $ReportPath "ReportsForLocalAccounts")
+$TestReportPathDomain = Test-Path (Join-Path $ReportPath "ReportsForDomainAccounts")
+
+if ($TestReportPathLocal -eq $false){
+    $ReportPathLocal = New-Item -Path (Join-Path $ReportPath "ReportsForLocalAccounts") -ItemType Directory -Verbose
+}
+else{
+    $ReportPathLocal = Join-Path $ReportPath "ReportsForLocalAccounts"
+}
+
+if ($TestReportPathDomain -eq $false){
+    $ReportPathDomain = New-Item -Path (Join-Path $ReportPath "ReportsForDomainAccounts") -ItemType Directory
+}else{
+    $ReportPathDomain = Join-Path $ReportPath "ReportsForDomainAccounts"
+}
 
     Function Get-DNAData {
         param(
@@ -99,7 +116,7 @@ $ReportPathDomain = New-Item -Path (Join-Path $ReportPath "ReportsForDomainAccou
         }
 
         Write-Output ("Getting data from Hard-Coded Credentials sheet, please wait.")
-        $script:HardCodedData = Import-Excel -Path $SpreadSheetPath @HardCodedSheet_Params 
+        $script:HardCodedData = Import-Excel -Path $SpreadSheetPath @HardCodedSheet_Params -ErrorAction SilentlyContinue
         
 
         Write-Host ("Data colllected successfully, displaying in the console in few seconds...")
@@ -217,7 +234,7 @@ Local Accounts Summary:
             Where-Object {$_.$AccountState -like "Disabled*" -and $_.$AccountName -notlike "*Group*" `
             -and $_.$AccountType -like "Local*"}
 
-            $NumberOfDisabledAccounts = $NumberOfDisabledAccountsVar.Count
+            $script:NumberOfDisabledAccounts = $NumberOfDisabledAccountsVar.Count
             $PercentageDisabledLocalAccounts = [math]::round(($NumberOfDisabledAccounts / $NumberOfLocalAccounts) * 100,2)
             Write-Host ("Disabled: $NumberOfDisabledAccounts | $PercentageDisabledLocalAccounts%")
 
@@ -244,7 +261,13 @@ Local Accounts Summary:
             $NumberOfCompliantLocalAccounts = $NumberOfCompliantLocalAccountsVar.Count
             $PercentageCompliantLocalAccounts = [math]::round(($NumberOfCompliantLocalAccounts / $NumberOfLocalAccounts) * 100,2)
 
-            Write-Host ("Compliant: $NumberOfCompliantLocalAccounts | $PercentageCompliantLocalAccounts%")
+            Write-Host ("Compliant(counting all accounts including disabled): $NumberOfCompliantLocalAccounts | $PercentageCompliantLocalAccounts%")
+
+            $NumberOfCompliantLocalAccountsNonDisabled = ($NumberOfCompliantLocalAccounts - $NumberOfDisabledAccounts)
+
+            Write-Host ("Compliant(excluding disabled accounts): ") 
+            
+            
 
             $NumberOfCompliantLocalAccountsVar | Sort-Object -Property $PasswordAge -Descending | Format-Table -Property `
             $HashTableAccountName,$HashTableComplianceStatus,$HashTablePasswordAge, `
@@ -357,7 +380,7 @@ Domain Accounts Summary:
         [string]$ReportPath
         )
 
-            $script:UniqueDomainAccounts = Join-Path "$ReportPathDomain" "UniqueDomainAccounts.txt"
+            $UniqueDomainAccounts = Join-Path "$ReportPathDomain" "UniqueDomainAccounts.txt"
 
             $script:NumberOfDomainAccountsVar = $WindowsSheetData | Where-Object {$_.$AccountName -notlike "*Group*" `
             -and $_.$AccountType -like "Domain*"} | 
@@ -367,7 +390,7 @@ Domain Accounts Summary:
             Write-Host("Unique Accounts: $NumberOfDomainAccounts")
 
             $NumberOfDomainAccountsVar | Sort-Object -Property $PasswordAge -Descending | Format-Table -Property `
-            $HashTableAccountName,$HashTableAccountType,$HashTablePasswordAge,$HashTableAccountState,$HashTableAccountCategory | 
+            $HashTableAccountName,$HashTablePasswordAge,$HashTableAccountState,$HashTableAccountCategory,$HashTableAccountType | 
             Tee-Object -FilePath $UniqueDomainAccounts | Out-Null
     }
 
