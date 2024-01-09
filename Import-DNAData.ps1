@@ -265,10 +265,6 @@ Local Accounts Summary:
 
             $NumberOfCompliantLocalAccountsNonDisabled = ($NumberOfCompliantLocalAccounts - $NumberOfDisabledAccounts)
 
-            Write-Host ("Compliant(excluding disabled accounts): ") 
-            
-            
-
             $NumberOfCompliantLocalAccountsVar | Sort-Object -Property $PasswordAge -Descending | Format-Table -Property `
             $HashTableAccountName,$HashTableComplianceStatus,$HashTablePasswordAge, `
             $HashTableAccountState,$HashTableAccountCategory,$HashTableAccountType,$HashTableMachineName | 
